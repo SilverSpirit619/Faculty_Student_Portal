@@ -1,0 +1,37 @@
+# .NET Core
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Visual Studio files
+.vs/
+*.vspscc
+*.vssscc
+.vscode/
+
+# Development settings
+appsettings.Development.json
+*.Development.json
+
+# Logs
+*.log
+
+# Local configuration
+*.local.json
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db 

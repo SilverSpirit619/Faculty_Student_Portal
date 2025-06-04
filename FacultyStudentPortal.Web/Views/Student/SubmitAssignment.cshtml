@@ -1,0 +1,106 @@
+@model FacultyStudentPortal.Web.ViewModels.SubmitAssignmentViewModel
+
+@{
+    ViewData["Title"] = "Submit Assignment";
+}
+
+<div class="container mt-4">
+    <h2>Submit Assignment</h2>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>@Model.Assignment.Title</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <p>@Model.Assignment.Description</p>
+                    <p>
+                        <strong>Due Date:</strong> @Model.Assignment.DueDate.ToLocalTime().ToString("f")
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.Assignment.FileUrl))
+                    {
+                        <p>
+                            <strong>Assignment File:</strong>
+                            <a href="@Model.Assignment.FileUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download Assignment
+                            </a>
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Submission == null)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h4>Submit Your Work</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="SubmitAssignment" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Assignment.Id" />
+
+                    <div class="mb-3">
+                        <label asp-for="File" class="form-label">Upload Your Work</label>
+                        <input asp-for="File" class="form-control" type="file" required />
+                        <span asp-validation-for="File" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Comments" class="form-label">Comments (Optional)</label>
+                        <textarea asp-for="Comments" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Comments" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit Assignment</button>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header">
+                <h4>Your Submission</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Submitted:</strong> @Model.Submission.SubmittedAt.ToLocalTime().ToString("f")</p>
+                        <p>
+                            <strong>Status:</strong>
+                            @if (Model.Submission.IsLate)
+                            {
+                                <span class="badge bg-warning">Late Submission</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">On Time</span>
+                            }
+                        </p>
+                        @if (!string.IsNullOrEmpty(Model.Submission.SubmissionFileUrl))
+                        {
+                            <p>
+                                <strong>Your Work:</strong>
+                                <a href="@Model.Submission.SubmissionFileUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-file-earmark"></i> View Submission
+                                </a>
+                            </p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Submission.Comments))
+                        {
+                            <p><strong>Your Comments:</strong></p>
+                            <p class="text-muted">@Model.Submission.Comments</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

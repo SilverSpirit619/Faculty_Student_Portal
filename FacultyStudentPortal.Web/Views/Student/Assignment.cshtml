@@ -1,0 +1,254 @@
+@model FacultyStudentPortal.Web.ViewModels.SubmitAssignmentViewModel
+
+@{
+    ViewData["Title"] = "Assignment Details";
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">@Model.Assignment.Title</li>
+        </ol>
+    </nav>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">@Model.Assignment.Title</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <p class="text-muted mb-3">
+                        <i class="bi bi-calendar-event"></i> Due: @Model.Assignment.GetFormattedDueDate()
+                        @{
+                            var status = Model.Submission != null 
+                                ? (Model.Submission.IsGraded ? "Graded" : (Model.Submission.IsLate ? "Late Submission" : "Submitted"))
+                                : (Model.Assignment.IsExpired ? "Overdue" : "Pending");
+                            var badgeClass = Model.Submission != null 
+                                ? (Model.Submission.IsGraded ? "bg-success" : (Model.Submission.IsLate ? "bg-warning" : "bg-info"))
+                                : (Model.Assignment.IsExpired ? "bg-danger" : "bg-warning");
+                        }
+                        <span class="badge @badgeClass">@status</span>
+                    </p>
+                    <div class="alert @(Model.Assignment.IsExpired ? "alert-danger" : "alert-warning") mb-4">
+                        <i class="bi bi-clock"></i>
+                        <div data-timer="@Model.Assignment.DueDate.ToString("o")"></div>
+                    </div>
+                    <div class="mb-4">
+                        <h5><i class="bi bi-file-text"></i> Description</h5>
+                        <p class="mb-4">@Model.Assignment.Description</p>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Assignment.FileUrl))
+                    {
+                        <div class="mb-4">
+                            <h5><i class="bi bi-file-earmark"></i> Assignment File</h5>
+                            <a href="@Model.Assignment.FileUrl" class="btn btn-outline-primary" target="_blank">
+                                <i class="bi bi-download"></i> Download Assignment File
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Submission == null && !Model.Assignment.IsExpired)
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-upload"></i> Submit Your Work</h4>
+            </div>
+            <div class="card-body">
+                <form id="submissionForm" asp-action="SubmitAssignment" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Assignment.Id" />
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="File" class="form-label required">Upload Your Work</label>
+                        <div class="input-group">
+                            <input asp-for="File" class="form-control" type="file" required 
+                                   accept=".pdf,.doc,.docx,.txt,.zip,.rar"
+                                   data-val="true"
+                                   data-val-required="Please select a file to submit" />
+                            <span class="input-group-text"><i class="bi bi-file-earmark-arrow-up"></i></span>
+                        </div>
+                        <div class="form-text">
+                            <ul class="mb-0">
+                                <li>Accepted formats: PDF, DOC, DOCX, TXT, ZIP, RAR</li>
+                                <li>Maximum file size: 100MB</li>
+                            </ul>
+                        </div>
+                        <span asp-validation-for="File" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Comments" class="form-label required">Comments</label>
+                        <textarea asp-for="Comments" class="form-control" rows="3" 
+                                  placeholder="Add comments about your submission here..."
+                                  maxlength="1000"
+                                  required></textarea>
+                        <div class="form-text">Maximum 1000 characters</div>
+                        <span asp-validation-for="Comments" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn btn-primary btn-lg">
+                        <i class="bi bi-cloud-upload"></i> Submit Assignment
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+    else if (Model.Submission != null)
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-check-circle"></i> Your Submission</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong><i class="bi bi-calendar-check"></i> Submitted:</strong> 
+                           @Model.Submission.SubmittedAt.ToLocalTime().ToString("f")</p>
+                        <p>
+                            <strong><i class="bi bi-info-circle"></i> Status:</strong>
+                            @if (Model.Submission.IsGraded)
+                            {
+                                <span class="badge bg-success">Graded</span>
+                            }
+                            else if (Model.Submission.IsLate)
+                            {
+                                <span class="badge bg-warning">Late Submission</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info">Submitted</span>
+                            }
+                        </p>
+                        @if (!string.IsNullOrEmpty(Model.Submission.SubmissionFileUrl))
+                        {
+                            <p>
+                                <strong><i class="bi bi-file-earmark"></i> Your Work:</strong>
+                                <a href="@Model.Submission.SubmissionFileUrl" target="_blank" 
+                                   class="btn btn-outline-primary">
+                                    <i class="bi bi-file-earmark"></i> View Submission
+                                </a>
+                            </p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Submission.Comments))
+                        {
+                            <p><strong><i class="bi bi-chat-text"></i> Your Comments:</strong></p>
+                            <p class="text-muted">@Model.Submission.Comments</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .badge {
+            font-size: 0.875rem;
+            padding: 0.5em 0.8em;
+        }
+        .card {
+            border: none;
+            margin-bottom: 1.5rem;
+        }
+        .card-header {
+            border-bottom: none;
+        }
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+        }
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        .required:after {
+            content: " *";
+            color: red;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+            initializeTimers();
+
+            $('#submissionForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Validate file
+                var fileInput = $('#File')[0];
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    showToast('Please select a file to submit', 'danger');
+                    return;
+                }
+
+                // Validate file size
+                if (fileInput.files[0].size > 100 * 1024 * 1024) {
+                    showToast('File size cannot exceed 100MB', 'danger');
+                    return;
+                }
+
+                // Validate file type
+                var fileName = fileInput.files[0].name;
+                var extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+                var allowedExtensions = ['.pdf', '.doc', '.docx', '.txt', '.zip', '.rar'];
+                if (!allowedExtensions.includes(extension)) {
+                    showToast('Invalid file type. Allowed types: PDF, DOC, DOCX, TXT, ZIP, RAR', 'danger');
+                    return;
+                }
+
+                var formData = new FormData(this);
+                $('#submitBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...');
+                
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            showToast(response.message, 'success');
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Dashboard")';
+                            }, 1500);
+                        } else {
+                            showToast(response.message, 'danger');
+                            $('#submitBtn').prop('disabled', false).html('<i class="bi bi-cloud-upload"></i> Submit Assignment');
+                        }
+                    },
+                    error: function() {
+                        showToast('Error submitting assignment.', 'danger');
+                        $('#submitBtn').prop('disabled', false).html('<i class="bi bi-cloud-upload"></i> Submit Assignment');
+                    }
+                });
+            });
+        });
+    </script>
+} 

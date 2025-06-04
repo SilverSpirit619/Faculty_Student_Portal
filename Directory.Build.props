@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DapperVersion>2.0.123</DapperVersion>
+    <SystemDataSqlClientVersion>4.8.5</SystemDataSqlClientVersion>
+    <MicrosoftAspNetCoreIdentityVersion>6.0.0</MicrosoftAspNetCoreIdentityVersion>
+    <MicrosoftEntityFrameworkCoreVersion>6.0.0</MicrosoftEntityFrameworkCoreVersion>
+    <ChartJsVersion>3.7.1</ChartJsVersion>
+  </PropertyGroup>
+</Project> 

@@ -1,0 +1,294 @@
+@model FacultyStudentPortal.Web.ViewModels.StudentDashboardViewModel
+
+@{
+    ViewData["Title"] = "Student Dashboard";
+}
+
+<div class="container mt-4">
+    <h2>Student Dashboard</h2>
+
+    @if (!string.IsNullOrEmpty(TempData["SuccessMessage"]?.ToString()))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Active Assignments -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-white">
+            <h3 class="card-title mb-0">Active Assignments</h3>
+        </div>
+        <div class="card-body">
+            @if (!Model.ActiveAssignments.Any())
+            {
+                <p class="text-muted">No active assignments at the moment.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="btn-group" role="group" aria-label="Status filter">
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill active" data-status="all">
+                                <i class="bi bi-funnel me-1"></i> All
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm rounded-pill" data-status="pending">
+                                <i class="bi bi-clock me-1"></i> Pending
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill" data-status="submitted">
+                                <i class="bi bi-check2 me-1"></i> Submitted
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" data-status="overdue">
+                                <i class="bi bi-x-circle me-1"></i> Overdue
+                            </button>
+                        </div>
+                    </div>
+                    <table class="table table-hover align-middle" id="activeAssignmentsTable">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var assignment in Model.ActiveAssignments)
+                            {
+                                var submission = Model.Submissions.FirstOrDefault(s => s.AssignmentId == assignment.Id);
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-file-text me-2"></i>
+                                            <span>@assignment.Title</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-calendar me-2"></i>
+                                            <span>@assignment.DueDate.ToLocalTime().ToString("f")</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (submission != null)
+                                        {
+                                            if (submission.IsGraded)
+                                            {
+                                                <span class="badge rounded-pill bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i> Graded
+                                                </span>
+                                            }
+                                            else if (submission.IsLate)
+                                            {
+                                                <span class="badge rounded-pill bg-warning text-dark">
+                                                    <i class="bi bi-exclamation-circle me-1"></i> Late
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge rounded-pill bg-success">
+                                                    <i class="bi bi-check2 me-1"></i> Submitted
+                                                </span>
+                                            }
+                                        }
+                                        else if (assignment.DueDate < DateTime.UtcNow)
+                                        {
+                                            <span class="badge rounded-pill bg-danger">
+                                                <i class="bi bi-x-circle me-1"></i> Overdue
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill bg-warning text-dark">
+                                                <i class="bi bi-clock me-1"></i> Pending
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        @if (submission == null)
+                                        {
+                                            <a asp-action="Assignment" asp-route-id="@assignment.Id" 
+                                               class="btn btn-primary btn-sm rounded-pill px-3">
+                                                <i class="bi bi-upload me-1"></i> Submit
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="Assignment" asp-route-id="@assignment.Id" 
+                                               class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                                <i class="bi bi-eye me-1"></i> View
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Grades -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h3 class="card-title mb-0">Your Grades</h3>
+        </div>
+        <div class="card-body">
+            @if (!Model.Assessments.Any())
+            {
+                <p class="text-muted">No grades available yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="assessmentsTable">
+                        <thead>
+                            <tr>
+                                <th>Assignment</th>
+                                <th>Criteria</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var assessment in Model.Assessments)
+                            {
+                                var percentage = (assessment.Score / assessment.MaxScore) * 100;
+                                var percentageClass = percentage >= 90 ? "text-success" :
+                                                    percentage >= 80 ? "text-primary" :
+                                                    percentage >= 70 ? "text-info" :
+                                                    percentage >= 60 ? "text-warning" : "text-danger";
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-file-text me-2"></i>
+                                            <span>@assessment.AssignmentTitle</span>
+                                        </div>
+                                    </td>
+                                    <td>@assessment.CriteriaName</td>
+                                    <td>@assessment.Score / @assessment.MaxScore</td>
+                                    <td>
+                                        <span class="@percentageClass fw-bold">
+                                            @percentage.ToString("F1")%
+                                        </span>
+                                    </td>
+                                    <td>@assessment.Remarks</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <style>
+        .card {
+            border: none;
+            margin-bottom: 1.5rem;
+        }
+        .card-header {
+            border-bottom: none;
+            background: white;
+        }
+        .table > :not(caption) > * > * {
+            padding: 1rem 0.75rem;
+        }
+        .badge {
+            font-weight: 500;
+            padding: 0.5em 1em;
+        }
+        .btn-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.875rem;
+        }
+        .table > tbody > tr > td {
+            vertical-align: middle;
+        }
+        .btn-group .btn {
+            margin: 0 0.25rem;
+        }
+        .btn-group .btn:first-child {
+            margin-left: 0;
+        }
+        .btn-group .btn:last-child {
+            margin-right: 0;
+        }
+        .btn-group .btn.active {
+            background-color: #6c757d;
+            color: white;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            var table = $('#activeAssignmentsTable').DataTable({
+                "pageLength": 10,
+                "ordering": true,
+                "info": true,
+                "searching": true,
+                "order": [[1, "asc"]],
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "Search..."
+                }
+            });
+
+            // Custom filtering function
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                if (!settings.nTable.id.includes('activeAssignmentsTable')) return true;
+                
+                var status = $('.btn-group .active').data('status');
+                if (status === 'all') return true;
+
+                var rowStatus = $(table.row(dataIndex).node()).find('.badge').text().trim().toLowerCase();
+                
+                switch(status) {
+                    case 'pending':
+                        return rowStatus === 'pending';
+                    case 'submitted':
+                        return rowStatus === 'submitted' || rowStatus === 'graded';
+                    case 'overdue':
+                        return rowStatus === 'overdue';
+                    default:
+                        return true;
+                }
+            });
+
+            // Status filter buttons
+            $('.btn-group .btn').click(function() {
+                $('.btn-group .btn').removeClass('active');
+                $(this).addClass('active');
+                table.draw();
+            });
+
+            // Initialize grades table
+            $('#assessmentsTable').DataTable({
+                "pageLength": 10,
+                "ordering": true,
+                "info": true,
+                "searching": true,
+                "order": [[1, "asc"]],
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "Search..."
+                }
+            });
+        });
+    </script>
+} 

@@ -1,0 +1,220 @@
+@model FacultyStudentPortal.Web.ViewModels.CreateAssignmentViewModel
+
+@{
+    ViewData["Title"] = "Create Assignment";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">@ViewData["Title"]</h2>
+                    <form asp-action="CreateAssignment" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="form-label"></label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="form-label"></label>
+                            <div class="input-group">
+                                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                                <button type="button" class="btn btn-outline-primary" onclick="generateDescription('title')" title="Generate description based on title">
+                                    <i class="bi bi-magic"></i> Generate
+                                </button>
+                            </div>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="DueDate" class="form-label"></label>
+                            <input asp-for="DueDate" class="form-control" type="datetime-local" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                            <span asp-validation-for="DueDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="File" class="form-label"></label>
+                            <input asp-for="File" class="form-control" type="file" />
+                            <span asp-validation-for="File" class="text-danger"></span>
+                        </div>
+
+                        <h4 class="mt-4">Assessment Criteria</h4>
+                        <div id="criteriaContainer">
+                            @for (var i = 0; i < Model.Criteria.Count; i++)
+                            {
+                                <div class="criteria-item border rounded p-3 mb-3">
+                                    <div class="form-group">
+                                        <label asp-for="@Model.Criteria[i].Name" class="form-label">Criteria Name</label>
+                                        <input asp-for="@Model.Criteria[i].Name" class="form-control" />
+                                        <span asp-validation-for="@Model.Criteria[i].Name" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label asp-for="@Model.Criteria[i].MaxScore" class="form-label">Maximum Score</label>
+                                        <input asp-for="@Model.Criteria[i].MaxScore" class="form-control" type="number" min="1" max="100" />
+                                        <span asp-validation-for="@Model.Criteria[i].MaxScore" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label asp-for="@Model.Criteria[i].Description" class="form-label">Description</label>
+                                        <div class="input-group">
+                                            <textarea asp-for="@Model.Criteria[i].Description" class="form-control" rows="2"></textarea>
+                                            <button type="button" class="btn btn-outline-primary" onclick="generateCriteriaDescription(this)" title="Generate description based on criteria name">
+                                                <i class="bi bi-magic"></i> Generate
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="@Model.Criteria[i].Description" class="text-danger"></span>
+                                    </div>
+
+                                    <button type="button" class="btn btn-danger mt-2" onclick="removeCriteria(this)">Remove Criteria</button>
+                                </div>
+                            }
+                        </div>
+
+                        <button type="button" class="btn btn-secondary mb-3" onclick="addCriteria()">Add Criteria</button>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Create Assignment</button>
+                            <a asp-action="Dashboard" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        // Initialize datetime-local input with current date and time
+        document.addEventListener('DOMContentLoaded', function() {
+            const dueDateInput = document.querySelector('input[type="datetime-local"]');
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            dueDateInput.min = now.toISOString().slice(0, 16);
+            
+            if (!dueDateInput.value) {
+                dueDateInput.value = now.toISOString().slice(0, 16);
+            }
+        });
+
+        async function generateDescription(type) {
+            const loadingToast = showToast('Generating description...', 'info', false);
+            try {
+                let prompt;
+                if (type === 'title') {
+                    const title = document.querySelector('#Title').value;
+                    if (!title) {
+                        showToast('Please enter a title first', 'warning');
+                        return;
+                    }
+                    prompt = `Write a clear and concise description for an academic assignment titled "${title}". Focus on the purpose and learning objectives.`;
+                }
+
+                const response = await fetch('/Faculty/GenerateDescription', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(prompt)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    document.querySelector('#Description').value = result.description;
+                    showToast('Description generated successfully!', 'success');
+                } else {
+                    showToast(result.error || 'Failed to generate description', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to generate description', 'error');
+            } finally {
+                if (loadingToast) {
+                    loadingToast.hide();
+                }
+            }
+        }
+
+        async function generateCriteriaDescription(button) {
+            const criteriaItem = button.closest('.criteria-item');
+            const nameInput = criteriaItem.querySelector('input[name$=".Name"]');
+            const descriptionTextarea = criteriaItem.querySelector('textarea[name$=".Description"]');
+            
+            if (!nameInput.value) {
+                showToast('Please enter criteria name first', 'warning');
+                return;
+            }
+
+            const loadingToast = showToast('Generating description...', 'info', false);
+            try {
+                const prompt = `Write a clear and concise description for a grading criterion named "${nameInput.value}". Explain what will be evaluated and what constitutes good performance.`;
+
+                const response = await fetch('/Faculty/GenerateDescription', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(prompt)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    descriptionTextarea.value = result.description;
+                    showToast('Description generated successfully!', 'success');
+                } else {
+                    showToast(result.error || 'Failed to generate description', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to generate description', 'error');
+            } finally {
+                if (loadingToast) {
+                    loadingToast.hide();
+                }
+            }
+        }
+
+        function addCriteria() {
+            const container = document.getElementById('criteriaContainer');
+            const index = container.children.length;
+            const template = `
+                <div class="criteria-item border rounded p-3 mb-3">
+                    <div class="form-group">
+                        <label class="form-label">Criteria Name</label>
+                        <input name="Criteria[${index}].Name" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Maximum Score</label>
+                        <input name="Criteria[${index}].MaxScore" class="form-control" type="number" min="1" max="100" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <div class="input-group">
+                            <textarea name="Criteria[${index}].Description" class="form-control" rows="2"></textarea>
+                            <button type="button" class="btn btn-outline-primary" onclick="generateCriteriaDescription(this)" title="Generate description based on criteria name">
+                                <i class="bi bi-magic"></i> Generate
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-danger mt-2" onclick="removeCriteria(this)">Remove Criteria</button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', template);
+        }
+
+        function removeCriteria(button) {
+            button.closest('.criteria-item').remove();
+        }
+    </script>
+} 
