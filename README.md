@@ -1,60 +1,117 @@
 # Faculty Student Portal
 
-A full-stack web application built with .NET Core 6.0 MVC for managing faculty-student assignments and assessments.
+A web application built with .NET Core MVC that facilitates interaction between faculty and students. Faculty can create assignments, grade submissions, and view performance reports, while students can submit assignments and track their progress.
 
 ## Features
 
-- Faculty and Student role-based authentication
-- Assignment creation and management
-- File upload for assignments
-- Assessment creation with multiple criteria
-- Performance visualization
-- Secure data access using stored procedures
+- **User Authentication**: Separate login for faculty and students
+- **Assignment Management**: Faculty can create, edit, and manage assignments
+- **File Submissions**: Students can submit assignments with file attachments
+- **Grading System**: Faculty can grade submissions and provide comments
+- **Performance Tracking**: View submission history and grades
+- **File Upload**: Secure file upload system with size and type restrictions
+- **Responsive Design**: Works on desktop and mobile devices
 
-## Tech Stack
+## Technologies Used
 
-- Backend: .NET Core 6.0 MVC
-- Database: SQL Server
-- ORM: Dapper
-- Frontend: Bootstrap, jQuery, Chart.js
-- Authentication: ASP.NET Core Identity
+- ASP.NET Core MVC (.NET 8.0)
+- Entity Framework Core 8.0
+- SQL Server 2019+
+- Bootstrap 5
+- jQuery 3.6+
 
 ## Prerequisites
 
-- .NET 6.0 SDK
-- SQL Server 2019 or later
-- Visual Studio 2022 or VS Code
+- .NET 8.0 SDK or later
+- SQL Server (LocalDB or higher)
+- Visual Studio 2022 or VS Code with C# extension
+- Git
 
-## Setup Instructions
+## Installation
 
-1. Clone the repository
-2. Update the connection string in `appsettings.json`
-3. Run the database migrations:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/SilverSpirit619/Faculty_Student_Portal.git
+   ```
+
+2. Navigate to the project directory:
+   ```bash
+   cd Faculty_Student_Portal
+   ```
+
+3. Restore dependencies:
+   ```bash
+   dotnet restore
+   ```
+
+4. Update the database:
    ```bash
    dotnet ef database update
    ```
-4. Run the application:
+
+5. Run the application:
    ```bash
    dotnet run --project FacultyStudentPortal.Web
    ```
 
+## Configuration
+
+1. Database Configuration:
+   - Update connection string in `appsettings.json`
+   - For production, use `appsettings.Production.json`
+   - Default uses SQL Server LocalDB
+
+2. File Upload Settings:
+   - Configure maximum file size
+   - Set allowed file types
+   - Adjust storage path
+   All these can be configured in `appsettings.json`
+
+3. Authentication:
+   - Default admin credentials are in `appsettings.json`
+   - Change passwords on first login
+   - Configure password requirements in `Startup.cs`
+
+## Usage
+
+1. Access the application at `https://localhost:<port>` (The port number will be shown in the console when you run the application)
+2. Register faculty and students.
+3. Log in using their respective credentials.
+4. Faculty Features:
+   - Create and manage assignments
+   - Grade student submissions
+   - View student performance reports
+5. Student Features:
+   - View available assignments
+   - Submit work with attachments
+   - Track grades and feedback
+
 ## Project Structure
 
-- **FacultyStudentPortal.Core**: Contains domain models and interfaces
-- **FacultyStudentPortal.Infrastructure**: Contains data access implementation
-- **FacultyStudentPortal.Web**: Contains MVC controllers, views, and frontend assets
-- **FacultyStudentPortal.Tests**: Contains unit tests
+```
+Faculty_Student_Portal/
+├── FacultyStudentPortal.Core/        # Domain models and interfaces
+├── FacultyStudentPortal.Infrastructure/  # Data access and services
+├── FacultyStudentPortal.Web/         # MVC application
+│   ├── Controllers/
+│   ├── Views/
+│   ├── wwwroot/
+│   └── appsettings.json
+└── FacultyStudentPortal.Tests/       # Unit and integration tests
+```
 
-## Development
+## Contributing
 
-1. Create new stored procedures in the `Database/StoredProcedures` folder
-2. Implement repository interfaces in the Infrastructure project
-3. Add new controllers in the Web project
-4. Add corresponding views in the Views folder
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Testing
+## License
 
-Run the tests using:
-```bash
-dotnet test
-``` 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, please open an issue in the GitHub repository. 
