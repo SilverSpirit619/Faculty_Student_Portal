@@ -1,117 +1,245 @@
 # Faculty Student Portal
 
-A web application built with .NET Core MVC that facilitates interaction between faculty and students. Faculty can create assignments, grade submissions, and view performance reports, while students can submit assignments and track their progress.
+A comprehensive web application built with ASP.NET Core MVC that facilitates interaction between faculty and students. The platform features OpenAI integration for automated assignment description generation, robust file management, and a user-friendly interface for academic interactions.
 
-## Features
+## 🌟 Features
 
-- **User Authentication**: Separate login for faculty and students
-- **Assignment Management**: Faculty can create, edit, and manage assignments
-- **File Submissions**: Students can submit assignments with file attachments
-- **Grading System**: Faculty can grade submissions and provide comments
-- **Performance Tracking**: View submission history and grades
-- **File Upload**: Secure file upload system with size and type restrictions
-- **Responsive Design**: Works on desktop and mobile devices
+### User Management
+- **Role-Based Authentication**: Separate secure login systems for faculty and students
+- **User Profiles**: Manage personal information and academic details
+- **Access Control**: Role-specific features and permissions
 
-## Technologies Used
+### Faculty Features
+- **Assignment Management**
+  - Create and edit assignments
+  - Set deadlines and submission requirements
+  - AI-powered description generation using OpenAI
+  - Define assessment criteria and rubrics
+  - Bulk assignment operations
 
-- ASP.NET Core MVC (.NET 8.0)
-- Entity Framework Core 8.0
-- SQL Server 2019+
-- Bootstrap 5
-- jQuery 3.6+
+- **Grading System**
+  - Grade submissions with detailed feedback
+  - Apply rubric-based assessment
+  - Track submission history
+  - Generate performance reports
 
-## Prerequisites
+### Student Features
+- **Assignment Handling**
+  - View available assignments and deadlines
+  - Submit assignments with file attachments
+  - Track submission status
+  - View grades and feedback
+  - Submission history
+
+### File Management
+- **Secure File Upload**
+  - Support for multiple file formats
+  - Size restrictions and validation
+  - Organized storage structure
+  - File version control
+
+### AI Integration
+- **OpenAI-Powered Features**
+  - Automatic assignment description generation
+  - Smart content suggestions
+  - Academic context-aware responses
+  - Rate limit handling and error management
+
+### Reporting
+- **Performance Analytics**
+  - Individual student progress tracking
+  - Class-wide performance metrics
+  - Assignment completion statistics
+  - Grade distribution analysis
+
+## 🛠️ Technologies Used
+
+- **Backend**
+  - ASP.NET Core 8.0
+  - Entity Framework Core 8.0
+  - SQL Server 2019+
+  - OpenAI API Integration
+
+- **Frontend**
+  - Bootstrap 5
+  - jQuery 3.6+
+  - Modern JavaScript
+  - Responsive Design
+
+- **Security**
+  - Role-based authentication
+  - Secure file handling
+  - API key protection
+  - XSS/CSRF prevention
+
+## 📋 Prerequisites
 
 - .NET 8.0 SDK or later
-- SQL Server (LocalDB or higher)
+- SQL Server 2019+ (LocalDB or higher)
 - Visual Studio 2022 or VS Code with C# extension
+- Node.js (for frontend package management)
 - Git
 
-## Installation
+## 🚀 Installation
 
-1. Clone the repository:
+1. **Clone the Repository**
    ```bash
    git clone https://github.com/SilverSpirit619/Faculty_Student_Portal.git
-   ```
-
-2. Navigate to the project directory:
-   ```bash
    cd Faculty_Student_Portal
    ```
 
-3. Restore dependencies:
+2. **Restore Dependencies**
    ```bash
    dotnet restore
    ```
 
-4. Update the database:
+3. **Database Setup**
    ```bash
-   dotnet ef database update
+   cd Database
+   .\setup_database.bat
    ```
 
-5. Run the application:
-   ```bash
-   dotnet run --project FacultyStudentPortal.Web
+4. **Configure Settings**
+   - Copy `appsettings.json` to `appsettings.Development.json`
+   - Update the connection string
+   - Add your OpenAI API key
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=FacultyStudentPortal;Trusted_Connection=True"
+     },
+     "OpenAI": {
+       "ApiKey": "your-api-key-here",
+       "Model": "gpt-3.5-turbo",
+       "MaxTokens": 150,
+       "Temperature": 0.7
+     }
+   }
    ```
 
-## Configuration
+5. **Run the Application**
+   ```bash
+   cd ../FacultyStudentPortal.Web
+   dotnet run
+   ```
 
-1. Database Configuration:
-   - Update connection string in `appsettings.json`
-   - For production, use `appsettings.Production.json`
-   - Default uses SQL Server LocalDB
+## 🔧 Configuration
 
-2. File Upload Settings:
-   - Configure maximum file size
-   - Set allowed file types
-   - Adjust storage path
-   All these can be configured in `appsettings.json`
+### Database Configuration
+- Update connection string in `appsettings.json`
+- Configure database provider in `Startup.cs`
+- Run migrations: `dotnet ef database update`
 
-3. Authentication:
-   - Default admin credentials are in `appsettings.json`
-   - Change passwords on first login
-   - Configure password requirements in `Startup.cs`
+### File Upload Settings
+```json
+{
+  "FileUpload": {
+    "MaxFileSize": 10485760, // 10MB
+    "AllowedExtensions": [".pdf", ".doc", ".docx", ".txt"],
+    "StoragePath": "wwwroot/uploads"
+  }
+}
+```
 
-## Usage
+### OpenAI Integration
+- Set API key in environment variables or secure configuration
+- Configure rate limiting and retry policies
+- Adjust model parameters in settings
 
-1. Access the application at `https://localhost:<port>` (The port number will be shown in the console when you run the application)
-2. Register faculty and students.
-3. Log in using their respective credentials.
-4. Faculty Features:
-   - Create and manage assignments
-   - Grade student submissions
-   - View student performance reports
-5. Student Features:
-   - View available assignments
-   - Submit work with attachments
-   - Track grades and feedback
-
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 Faculty_Student_Portal/
-├── FacultyStudentPortal.Core/        # Domain models and interfaces
-├── FacultyStudentPortal.Infrastructure/  # Data access and services
-├── FacultyStudentPortal.Web/         # MVC application
+├── FacultyStudentPortal.Core/           # Domain models and interfaces
+│   ├── Models/
+│   └── Interfaces/
+├── FacultyStudentPortal.Infrastructure/ # Data access and services
+│   ├── Data/
+│   ├── Repositories/
+│   └── Services/
+├── FacultyStudentPortal.Web/           # MVC application
 │   ├── Controllers/
 │   ├── Views/
-│   ├── wwwroot/
-│   └── appsettings.json
-└── FacultyStudentPortal.Tests/       # Unit and integration tests
+│   ├── ViewModels/
+│   └── wwwroot/
+├── Database/                           # Database scripts and migrations
+│   ├── Migrations/
+│   └── StoredProcedures/
+└── FacultyStudentPortal.Tests/        # Unit and integration tests
 ```
 
-## Contributing
+## 🧪 Testing
+
+Run the test suite:
+```bash
+dotnet test
+```
+
+The project includes:
+- Unit tests for services
+- Integration tests for repositories
+- Controller tests
+- End-to-end tests
+
+## 🔐 Security
+
+- **Authentication**: ASP.NET Core Identity
+- **Authorization**: Role-based access control
+- **Data Protection**: 
+  - Encrypted connections
+  - Secure file storage
+  - Input validation
+  - XSS protection
+- **API Security**:
+  - Rate limiting
+  - API key protection
+  - Request validation
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+3. Commit your changes
+   ```bash
+   git commit -m 'Add some AmazingFeature'
+   ```
+4. Push to the branch
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
 5. Open a Pull Request
 
-## License
+## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## 🆘 Support
 
-For support, please open an issue in the GitHub repository. 
+For support:
+- Open an issue in the GitHub repository
+- Contact the development team
+- Check the documentation
+
+## 🔄 Version History
+
+- **1.0.0** (Current)
+  - Initial release
+  - Basic faculty and student features
+  - OpenAI integration
+  - File upload system
+
+## 🙏 Acknowledgments
+
+- OpenAI for API integration
+- ASP.NET Core team
+- Bootstrap contributors
+- Open source community
+
+## 📞 Contact
+
+[@SilverSpirit619](https://github.com/SilverSpirit619)
+
+Project Link: [https://github.com/SilverSpirit619/Faculty_Student_Portal](https://github.com/SilverSpirit619/Faculty_Student_Portal) 
